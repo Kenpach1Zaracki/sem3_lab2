@@ -3,6 +3,97 @@
 #include "lfu.h"
 using namespace std;
 
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ХЕШ-ТАБЛИЦЫ ==========
+
+// Простая хеш-функция
+int lfuHash(int key, int capacity) {
+    return (key % capacity + capacity) % capacity;  // Обрабатываем отрицательные ключи
+}
+
+// Создать хеш-таблицу
+LFUHashTable* createLFUHashTable(int capacity) {
+    LFUHashTable* ht = new LFUHashTable;
+    ht->capacity = capacity * 2;  // В 2 раза больше для низкого load factor
+    ht->table = new LFUHashNode[ht->capacity];
+    
+    for (int i = 0; i < ht->capacity; i++) {
+        ht->table[i].isEmpty = true;
+    }
+    
+    return ht;
+}
+
+// Уничтожить хеш-таблицу
+void destroyLFUHashTable(LFUHashTable* ht) {
+    if (!ht) return;
+    delete[] ht->table;
+    delete ht;
+}
+
+// Вставить в хеш-таблицу (линейное пробирование)
+void lfuHashInsert(LFUHashTable* ht, int key, int index) {
+    if (!ht) return;
+    
+    int hash = lfuHash(key, ht->capacity);
+    
+    // Линейное пробирование
+    for (int i = 0; i < ht->capacity; i++) {
+        int pos = (hash + i) % ht->capacity;
+        
+        if (ht->table[pos].isEmpty || ht->table[pos].key == key) {
+            ht->table[pos].key = key;
+            ht->table[pos].value = index;
+            ht->table[pos].isEmpty = false;
+            return;
+        }
+    }
+}
+
+// Найти в хеш-таблице
+int lfuHashFind(LFUHashTable* ht, int key) {
+    if (!ht) return -1;
+    
+    int hash = lfuHash(key, ht->capacity);
+    
+    // Линейное пробирование
+    for (int i = 0; i < ht->capacity; i++) {
+        int pos = (hash + i) % ht->capacity;
+        
+        if (ht->table[pos].isEmpty) {
+            return -1;  // Не нашли
+        }
+        
+        if (ht->table[pos].key == key) {
+            return ht->table[pos].value;  // Нашли индекс
+        }
+    }
+    
+    return -1;
+}
+
+// Удалить из хеш-таблицы
+void lfuHashRemove(LFUHashTable* ht, int key) {
+    if (!ht) return;
+    
+    int hash = lfuHash(key, ht->capacity);
+    
+    // Линейное пробирование
+    for (int i = 0; i < ht->capacity; i++) {
+        int pos = (hash + i) % ht->capacity;
+        
+        if (ht->table[pos].isEmpty) {
+            return;
+        }
+        
+        if (ht->table[pos].key == key) {
+            ht->table[pos].isEmpty = true;
+            return;
+        }
+    }
+}
+
+// ========== ОСНОВНЫЕ ФУНКЦИИ LFU ==========
+
 LFUCache* createLFUCache(int capacity) {
     LFUCache* cache = new LFUCache;
     cache->capacity = capacity;
@@ -18,8 +109,12 @@ LFUCache* createLFUCache(int capacity) {
             cache->nodes[i].frequency = 0;
             cache->nodes[i].timestamp = 0;
         }
+        
+        // Создаём хеш-таблицу для быстрого поиска
+        cache->hashTable = createLFUHashTable(capacity);
     } else {
         cache->nodes = nullptr;
+        cache->hashTable = nullptr;
     }
     
     return cache;
@@ -31,19 +126,19 @@ void destroyLFUCache(LFUCache* cache) {
     if (cache->nodes) {
         delete[] cache->nodes;
     }
+    
+    if (cache->hashTable) {
+        destroyLFUHashTable(cache->hashTable);
+    }
+    
     delete cache;
 }
 
 int lfuFindIndex(LFUCache* cache, int key) {
     if (!cache || !cache->nodes) return -1;
     
-    for (int i = 0; i < cache->capacity; i++) {
-        if (!cache->nodes[i].isEmpty && cache->nodes[i].key == key) {
-            return i;
-        }
-    }
-    
-    return -1;
+    // O(1) поиск через свою хеш-таблицу!
+    return lfuHashFind(cache->hashTable, key);
 }
 
 int lfuFindMinFrequency(LFUCache* cache) {
@@ -55,8 +150,6 @@ int lfuFindMinFrequency(LFUCache* cache) {
     
     for (int i = 0; i < cache->capacity; i++) {
         if (!cache->nodes[i].isEmpty) {
-            // Ищем элемент с минимальной частотой
-            // При равенстве частот - с минимальным timestamp (давно не использовался)
             if (cache->nodes[i].frequency < minFrequency ||
                 (cache->nodes[i].frequency == minFrequency && 
                  cache->nodes[i].timestamp < minTimestamp)) {
@@ -75,7 +168,7 @@ void lfuSet(LFUCache* cache, int key, int value) {
     
     cache->currentTime++;
     
-    // Проверяем, существует ли ключ
+    // Проверяем, существует ли ключ (O(1) через хеш!)
     int index = lfuFindIndex(cache, key);
     
     if (index != -1) {
@@ -92,6 +185,9 @@ void lfuSet(LFUCache* cache, int key, int value) {
     if (cache->size >= cache->capacity) {
         int minIndex = lfuFindMinFrequency(cache);
         if (minIndex != -1) {
+            // Удаляем из хеш-таблицы
+            lfuHashRemove(cache->hashTable, cache->nodes[minIndex].key);
+            
             // Удаляем элемент
             cache->nodes[minIndex].isEmpty = true;
             cache->size--;
@@ -103,9 +199,13 @@ void lfuSet(LFUCache* cache, int key, int value) {
         if (cache->nodes[i].isEmpty) {
             cache->nodes[i].key = key;
             cache->nodes[i].value = value;
-            cache->nodes[i].frequency = 1;  // Начальная частота
+            cache->nodes[i].frequency = 1;
             cache->nodes[i].timestamp = cache->currentTime;
             cache->nodes[i].isEmpty = false;
+            
+            // Добавляем в хеш-таблицу (O(1))
+            lfuHashInsert(cache->hashTable, key, i);
+            
             cache->size++;
             break;
         }
@@ -117,6 +217,7 @@ int lfuGet(LFUCache* cache, int key) {
     
     cache->currentTime++;
     
+    // O(1) поиск через хеш!
     int index = lfuFindIndex(cache, key);
     
     if (index == -1) {

@@ -13,20 +13,6 @@ bool compareBlocks(const Block& a, const Block& b) {
     return a.height > b.height;  // По убыванию высоты
 }
 
-// Простая сортировка пузырьком (для самописной реализации)
-void sortBlocks(Block* blocks, int n) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (!compareBlocks(blocks[j], blocks[j + 1])) {
-                // Меняем местами
-                Block temp = blocks[j];
-                blocks[j] = blocks[j + 1];
-                blocks[j + 1] = temp;
-            }
-        }
-    }
-}
-
 void buildMaxPyramid() {
     cout << "=== Задание 4: Пирамида из блоков ===" << endl;
     
@@ -68,7 +54,7 @@ void buildMaxPyramid() {
     }
     
     // Сортируем блоки
-    sortBlocks(blocks, N);
+    std::sort(blocks, blocks + N, compareBlocks);
     
     cout << "\n--- Отсортированные блоки (по убыванию ширины) ---" << endl;
     for (int i = 0; i < N; i++) {
