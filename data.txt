@@ -1,0 +1,7 @@
+SETADD fruits apple
+SETADD fruits banana
+SETADD fruits cherry
+SET_AT fruits apple
+SET_AT fruits orange
+SETDEL fruits banana
+SET_AT fruits banana

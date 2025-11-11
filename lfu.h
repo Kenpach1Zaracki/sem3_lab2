@@ -9,10 +9,9 @@ struct LFUNode {
     bool isEmpty;      
 };
 
-// Простая хеш-таблица для маппинга key → index
 struct LFUHashNode {
     int key;
-    int value;  // индекс в массиве nodes
+    int value;  
     bool isEmpty;
 };
 
@@ -26,7 +25,7 @@ struct LFUCache {
     int capacity;      
     int size;          
     int currentTime;   
-    LFUHashTable* hashTable;  // Своя хеш-таблица для O(1) поиска
+    LFUHashTable* hashTable;  
 };
 
 LFUCache* createLFUCache(int capacity);

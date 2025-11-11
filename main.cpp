@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include "zad1.h"
 #include "zad2.h"
 #include "zad3.h"
@@ -9,10 +10,17 @@
 
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--task2") == 0) {
+            processSetOperations(argc, argv);
+            return 0;
+        }
+    }
+    
     int choice;
     
-    while (true) {
+    do {
         cout << "\n1. Вычисление выражения" << endl;
         cout << "2. АТД Множество" << endl;
         cout << "3. Максимальное количество пересечений" << endl;
@@ -22,20 +30,14 @@ int main() {
         cout << "7. LFU кэш" << endl;
         cout << "0. Выход" << endl;
         cout << "Выберите задание: ";
-        
         cin >> choice;
         
-        if (choice == 0) {
-            cout << "Выход из программы" << endl;
-            break;
-        }
-        
-        switch (choice) {
+        switch(choice) {
             case 1:
                 calculateExpression();
                 break;
             case 2:
-                interactiveSetMode();
+                processSetOperations(argc, argv);
                 break;
             case 3:
                 findMaxIntersection();
@@ -52,10 +54,13 @@ int main() {
             case 7:
                 processLFU();
                 break;
+            case 0:
+                cout << "Выход из программы" << endl;
+                break;
             default:
                 cout << "Неверный выбор" << endl;
         }
-    }
+    } while (choice != 0);
     
     return 0;
 }

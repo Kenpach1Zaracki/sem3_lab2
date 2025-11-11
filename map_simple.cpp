@@ -36,17 +36,15 @@ Set* simpleMapFind(SimpleMap* map, const std::string& key) {
 void simpleMapInsert(SimpleMap* map, const std::string& key, Set* value) {
     if (!map) return;
     
-    // Проверяем, существует ли ключ
     MapNode* current = map->head;
     while (current != nullptr) {
         if (current->key == key) {
-            current->value = value;  // Обновляем значение
+            current->value = value; 
             return;
         }
         current = current->next;
     }
     
-    // Добавляем новый узел в начало
     MapNode* newNode = new MapNode;
     newNode->key = key;
     newNode->value = value;

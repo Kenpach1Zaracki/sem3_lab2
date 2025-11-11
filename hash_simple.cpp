@@ -3,7 +3,6 @@
 #include "hash_simple.h"
 using namespace std;
 
-// Хеш-функция
 int simpleHash(const string& key, int capacity) {
     unsigned long hash = 5381;
     for (char c : key) {
@@ -47,16 +46,14 @@ bool simpleHashInsert(SimpleHashTable* ht, const string& key, int value) {
     int index = simpleHash(key, ht->capacity);
     SimpleHashNode* current = ht->table[index];
     
-    // Проверяем, существует ли уже такой ключ
     while (current != nullptr) {
         if (current->key == key) {
-            current->value = value;  // Обновляем значение
+            current->value = value;  
             return true;
         }
         current = current->next;
     }
     
-    // Добавляем новый узел в начало цепочки
     SimpleHashNode* newNode = new SimpleHashNode;
     newNode->key = key;
     newNode->value = value;
@@ -77,7 +74,6 @@ bool simpleHashDelete(SimpleHashTable* ht, const string& key) {
     while (current != nullptr) {
         if (current->key == key) {
             if (prev == nullptr) {
-                // Удаляем первый элемент цепочки
                 ht->table[index] = current->next;
             } else {
                 prev->next = current->next;
@@ -90,7 +86,7 @@ bool simpleHashDelete(SimpleHashTable* ht, const string& key) {
         current = current->next;
     }
     
-    return false;  // Ключ не найден
+    return false; 
 }
 
 int simpleHashSearch(SimpleHashTable* ht, const string& key) {
@@ -106,7 +102,7 @@ int simpleHashSearch(SimpleHashTable* ht, const string& key) {
         current = current->next;
     }
     
-    return -1;  // Ключ не найден
+    return -1; 
 }
 
 void simpleHashGetKeys(SimpleHashTable* ht, string* keys, int& count) {

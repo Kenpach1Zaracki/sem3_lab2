@@ -72,13 +72,11 @@ void processLFU() {
         }
     }
     
-    // Вывод результатов GET запросов
     if (!results.empty()) {
         cout << "\n--- Результаты GET запросов ---" << endl;
         cout << results << endl;
     }
     
-    // Вывод состояния кэша
     cout << "\n--- Состояние кэша ---" << endl;
     cout << "Емкость: " << cache->capacity << endl;
     cout << "Текущий размер: " << cache->size << endl;

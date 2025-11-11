@@ -4,34 +4,34 @@
 using namespace std;
 
 struct Set {
-    SimpleHashTable* hashTable;
+    SimpleHashTable* table;
 };
 
 Set* createSet(int initialCapacity) {
     Set* set = new Set;
-    set->hashTable = createSimpleHashTable(initialCapacity);
+    set->table = createSimpleHashTable(initialCapacity);
     return set;
 }
 
 void destroySet(Set* set) {
     if (!set) return;
-    destroySimpleHashTable(set->hashTable);
+    destroySimpleHashTable(set->table);
     delete set;
 }
 
-bool setAdd(Set* set, const string& element) {
-    if (!set || element.empty()) return false;
-    return simpleHashInsert(set->hashTable, element, 1);
+void setAdd(Set* set, const string& element) {
+    if (!set || element.empty()) return;
+    simpleHashInsert(set->table, element, 1);
 }
 
-bool setDelete(Set* set, const string& element) {
-    if (!set || element.empty()) return false;
-    return simpleHashDelete(set->hashTable, element);
+void setDelete(Set* set, const string& element) {
+    if (!set || element.empty()) return;
+    simpleHashDelete(set->table, element);
 }
 
 int setAt(Set* set, const string& element) {
     if (!set || element.empty()) return -1;
-    return simpleHashSearch(set->hashTable, element);
+    return simpleHashSearch(set->table, element);
 }
 
 void setGetElements(Set* set, string* elements, int& count) {
@@ -39,12 +39,12 @@ void setGetElements(Set* set, string* elements, int& count) {
         count = 0;
         return;
     }
-    simpleHashGetKeys(set->hashTable, elements, count);
+    simpleHashGetKeys(set->table, elements, count);
 }
 
 int setGetSize(Set* set) {
-    if (!set || !set->hashTable) return 0;
-    return set->hashTable->size;
+    if (!set || !set->table) return 0;
+    return set->table->size;
 }
 
 void printSet(Set* set) {
@@ -71,4 +71,37 @@ void printSet(Set* set) {
     cout << " }" << endl;
     
     delete[] elements;
+}
+
+string* getAllElements(Set* set, int& count) {
+    if (!set || !set->table) {
+        count = 0;
+        return nullptr;
+    }
+    
+    count = 0;
+    for (int i = 0; i < set->table->capacity; i++) {
+        SimpleHashNode* node = set->table->table[i];
+        while (node) {
+            count++; 
+            node = node->next;
+        }
+    }
+    
+    if (count == 0) {
+        return nullptr;
+    }
+    
+    string* elements = new string[count];
+    int index = 0;
+    
+    for (int i = 0; i < set->table->capacity; i++) {
+        SimpleHashNode* node = set->table->table[i];
+        while (node) {
+            elements[index++] = node->key; 
+            node = node->next;
+        }
+    }
+    
+    return elements;
 }
