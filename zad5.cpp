@@ -1,64 +1,77 @@
 #include <iostream>
 #include "zad5.h"
-#include "huffman.h"
+#include "bst.h"
 using namespace std;
 
 void processHuffman() {
-    cout << "=== Задание 5: Алгоритм Хаффмана ===" << endl;
+    cout << "=== Задание 5: Бинарное дерево поиска ===" << endl;
     
-    string text;
-    cout << "Введите строку для кодирования: ";
-    getline(cin, text);
+    BSTNode* root = createBST();
     
-    if (text.empty()) {
-        cout << "Ошибка: пустая строка" << endl;
-        return;
+    cout << "\nКоманды:" << endl;
+    cout << "  INSERT <число> - вставить" << endl;
+    cout << "  SEARCH <число> - найти" << endl;
+    cout << "  DELETE <число> - удалить" << endl;
+    cout << "  INORDER - центрированный обход" << endl;
+    cout << "  PREORDER - префиксный обход" << endl;
+    cout << "  POSTORDER - постфиксный обход" << endl;
+    cout << "  PRINT - показать дерево" << endl;
+    cout << "  EXIT - выход" << endl;
+    
+    string command;
+    
+    while (true) {
+        cout << "\n> ";
+        cin >> command;
+        
+        if (command == "EXIT") {
+            break;
+        }
+        else if (command == "INSERT") {
+            int key;
+            cin >> key;
+            root = insertBST(root, key);
+            cout << "Добавлено: " << key << endl;
+        }
+        else if (command == "SEARCH") {
+            int key;
+            cin >> key;
+            BSTNode* found = searchBST(root, key);
+            if (found) {
+                cout << "Найдено: " << key << endl;
+            } else {
+                cout << "Не найдено: " << key << endl;
+            }
+        }
+        else if (command == "DELETE") {
+            int key;
+            cin >> key;
+            root = deleteBST(root, key);
+            cout << "Удалено: " << key << endl;
+        }
+        else if (command == "INORDER") {
+            cout << "In-Order: ";
+            inOrderTraversal(root);
+            cout << endl;
+        }
+        else if (command == "PREORDER") {
+            cout << "Pre-Order: ";
+            preOrderTraversal(root);
+            cout << endl;
+        }
+        else if (command == "POSTORDER") {
+            cout << "Post-Order: ";
+            postOrderTraversal(root);
+            cout << endl;
+        }
+        else if (command == "PRINT") {
+            cout << "\nДерево:" << endl;
+            printTree(root, 0);
+        }
+        else {
+            cout << "Неизвестная команда" << endl;
+        }
     }
     
-    cout << "\n--- Исходная строка ---" << endl;
-    cout << text << endl;
-    cout << "Длина: " << text.length() << " символов" << endl;
-    
-    // Строим дерево Хаффмана
-    HuffmanNode* root = buildHuffmanTree(text);
-    if (!root) {
-        cout << "Ошибка построения дерева" << endl;
-        return;
-    }
-    
-    // Создаем таблицу кодов
-    HuffmanTable* table = createHuffmanTable();
-    buildCodesFromTree(root, table, "");
-    
-    // Выводим таблицу кодов
-    cout << "\n--- Таблица кодов Хаффмана ---" << endl;
-    for (int i = 0; i < table->size; i++) {
-        cout << "'" << table->codes[i].symbol << "' -> " 
-             << table->codes[i].code << endl;
-    }
-    
-    // Кодируем строку
-    string encoded = encodeHuffman(text, table);
-    cout << "\n--- Закодированная строка ---" << endl;
-    cout << encoded << endl;
-    cout << "Длина: " << encoded.length() << " бит" << endl;
-    
-    int originalBits = text.length() * 8;
-    double compression = (1.0 - (double)encoded.length() / originalBits) * 100;
-    cout << "Коэффициент сжатия: " << compression << "%" << endl;
-    
-    // Декодируем строку
-    string decoded = decodeHuffman(encoded, root);
-    cout << "\n--- Декодированная строка ---" << endl;
-    cout << decoded << endl;
-    
-    if (decoded == text) {
-        cout << "Декодирование корректно!" << endl;
-    } else {
-        cout << "ОШИБКА: декодированная строка не совпадает!" << endl;
-    }
-    
-    // Очистка памяти
-    destroyHuffmanTree(root);
-    destroyHuffmanTable(table);
+    destroyBST(root);
 }
